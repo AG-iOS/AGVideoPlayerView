@@ -10,6 +10,10 @@ import AVKit
 import AVFoundation
 import PINRemoteImage
 
+extension Notification.Name {
+    static let playerDidChangeFullscreenMode = Notification.Name("playerDidEnterFullscreenMode")
+}
+
 class AGVideoPlayerView: UIView {
     
     //MARK: Public variables
@@ -35,7 +39,7 @@ class AGVideoPlayerView: UIView {
             }
         }
     }
-    
+
     //Automatically replay video after playback is complete.
     var shouldAutoRepeat: Bool = false {
         didSet {
@@ -75,11 +79,12 @@ class AGVideoPlayerView: UIView {
     fileprivate var previewImageView: UIImageView!
     fileprivate var customControlsContentView: UIView!
     fileprivate var playIcon: UIImageView!
-    
+    fileprivate var isFullscreen = false
     
     //MARK: Life cycle
     deinit {
         NotificationCenter.default.removeObserver(self)
+        removePlayerObservers()
         displayLink?.invalidate()
     }
     
@@ -97,8 +102,12 @@ class AGVideoPlayerView: UIView {
         super.willMove(toWindow: newWindow)
         if newWindow == nil {
             pause()
+            removeTimer()
+        } else {
+            if shouldAutoplay {
+                runTimer()
+            }
         }
-        displayLink?.isPaused = newWindow == nil
     }
     
     //MARK: View configuration
@@ -188,6 +197,7 @@ class AGVideoPlayerView: UIView {
     fileprivate func prepareVideoPlayer() {
         guard let url = videoUrl else {
             videoAsset = nil
+            playerController.player?.removeObserver(self, forKeyPath: "rate")
             playerController.player = nil
             return
         }
@@ -195,6 +205,7 @@ class AGVideoPlayerView: UIView {
         let item = AVPlayerItem(asset: videoAsset!)
         let player = AVPlayer(playerItem: item)
         playerController.player = player
+        addPlayerObservers()
     }
     
     func didTapPlay() {
@@ -236,4 +247,30 @@ class AGVideoPlayerView: UIView {
         }
     }
     
+    //MARK: Player size observing
+    private func addPlayerObservers() {
+        playerController.player?.addObserver(self, forKeyPath: "rate", options: .new, context: nil)
+        playerController.contentOverlayView?.addObserver(self, forKeyPath: "bounds", options: .new, context: nil)
+    }
+    
+    private func removePlayerObservers() {
+        playerController.player?.removeObserver(self, forKeyPath: "rate")
+        playerController.contentOverlayView?.removeObserver(self, forKeyPath: "bounds")
+    }
+    
+    override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
+        switch keyPath! {
+        case "rate":
+            self.previewImageView.isHidden = true
+        case "bounds":
+            let fullscreen = playerController.contentOverlayView?.bounds == UIScreen.main.bounds
+            if isFullscreen != fullscreen {
+                isFullscreen = fullscreen
+                NotificationCenter.default.post(name: .playerDidChangeFullscreenMode, object: isFullscreen)
+                print("Is fullscreen \(isFullscreen)")
+            }
+        default:
+            break
+        }
+    }
 }

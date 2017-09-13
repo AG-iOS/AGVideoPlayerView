@@ -49,7 +49,7 @@ extension ViewController: UITableViewDataSource {
         cell.playerView.previewImageUrl = image
         cell.playerView.shouldAutoplay = true
         cell.playerView.shouldAutoRepeat = true
-        cell.playerView.showsCustomControls = true
+        cell.playerView.showsCustomControls = false
         return cell
     }
 }

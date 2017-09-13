@@ -12,11 +12,23 @@ import UIKit
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
-
+    var shouldAutorotate = false
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(playerDidChangeFullscreenMode), name: .playerDidChangeFullscreenMode, object: nil)
+        
         return true
+    }
+    
+    func playerDidChangeFullscreenMode(_ notification: Notification) {
+        guard let isFullscreen = notification.object as? Bool else {
+            return
+        }
+        shouldAutorotate = isFullscreen
+        if !shouldAutorotate {
+            UIDevice.current.setValue(UIInterfaceOrientation.portrait.rawValue, forKey: "orientation")
+        }
     }
 
     func applicationWillResignActive(_ application: UIApplication) {
@@ -41,6 +53,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
     }
 
-
+    func application(_ application: UIApplication, supportedInterfaceOrientationsFor window: UIWindow?) -> UIInterfaceOrientationMask {
+        if shouldAutorotate {
+            return .all
+        } else {
+            return .portrait
+        }
+    }
 }
 

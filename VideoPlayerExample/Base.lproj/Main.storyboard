@@ -10,6 +10,38 @@
     </dependencies>
     <scenes>
         <!--View Controller-->
+        <scene sceneID="ELP-AC-sIH">
+            <objects>
+                <viewController id="9ad-G1-4fg" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="qJ2-pa-2o7"/>
+                        <viewControllerLayoutGuide type="bottom" id="HJN-qB-gpC"/>
+                    </layoutGuides>
+                    <view key="view" contentMode="scaleToFill" id="h3r-g1-2Ze">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="rkT-vt-vzU">
+                                <rect key="frame" x="146" y="318.5" width="82" height="30"/>
+                                <state key="normal" title="View videos"/>
+                                <connections>
+                                    <segue destination="BYZ-38-t0r" kind="show" id="GBg-EQ-vMh"/>
+                                </connections>
+                            </button>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        <constraints>
+                            <constraint firstItem="rkT-vt-vzU" firstAttribute="centerX" secondItem="h3r-g1-2Ze" secondAttribute="centerX" id="7OG-q7-Jej"/>
+                            <constraint firstItem="rkT-vt-vzU" firstAttribute="centerY" secondItem="h3r-g1-2Ze" secondAttribute="centerY" id="JcP-mK-TzG"/>
+                        </constraints>
+                    </view>
+                    <navigationItem key="navigationItem" id="t4B-wT-KxM"/>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="mLO-wA-aKR" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="244" y="136"/>
+        </scene>
+        <!--View Controller-->
         <scene sceneID="tne-QT-ifu">
             <objects>
                 <viewController id="BYZ-38-t0r" customClass="ViewController" customModule="VideoPlayerExample" customModuleProvider="target" sceneMemberID="viewController">
@@ -106,12 +138,12 @@
                     </navigationBar>
                     <nil name="viewControllers"/>
                     <connections>
-                        <segue destination="BYZ-38-t0r" kind="relationship" relationship="rootViewController" id="cGL-ZZ-OIK"/>
+                        <segue destination="9ad-G1-4fg" kind="relationship" relationship="rootViewController" id="hQX-vp-ed0"/>
                     </connections>
                 </navigationController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Fsa-Mp-kSE" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="322" y="139"/>
+            <point key="canvasLocation" x="-566" y="139"/>
         </scene>
     </scenes>
 </document>
