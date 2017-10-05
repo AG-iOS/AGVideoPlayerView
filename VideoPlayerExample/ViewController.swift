@@ -50,7 +50,7 @@ extension ViewController: UITableViewDataSource {
         cell.playerView.shouldAutoplay = true
         cell.playerView.shouldAutoRepeat = true
         cell.playerView.showsCustomControls = false
-        cell.playerView.shouldAutofullscreen = true
+        cell.playerView.shouldSwitchToFullscreen = true
         return cell
     }
 }

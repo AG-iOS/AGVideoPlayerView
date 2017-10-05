@@ -52,11 +52,11 @@ class AGVideoPlayerView: UIView {
         }
     }
     
-    //Automatically go to fullscreen when device orientation did change to landscape
-    var shouldAutofullscreen: Bool = false {
+    //Automatically switch to full-screen mode when device orientation did change to landscape.
+    var shouldSwitchToFullscreen: Bool = false {
         didSet {
-            if oldValue == shouldAutofullscreen { return }
-            if shouldAutofullscreen {
+            if oldValue == shouldSwitchToFullscreen { return }
+            if shouldSwitchToFullscreen {
                 NotificationCenter.default.addObserver(self, selector: #selector(deviceOrientationDidChange(_:)), name: .UIDeviceOrientationDidChange, object: nil)
             } else {
                 NotificationCenter.default.removeObserver(self, name: .AVPlayerItemDidPlayToEndTime, object: nil)
@@ -121,22 +121,24 @@ class AGVideoPlayerView: UIView {
             }
         }
     }
-    
-    //MARK: View configuration
-    private func setUpView() {
+}
+
+//MARK: View configuration
+extension AGVideoPlayerView {
+    fileprivate func setUpView() {
         self.backgroundColor = .black
         addVideoPlayerView()
         configurateControls()
     }
     
-    fileprivate func addVideoPlayerView() {
+    private func addVideoPlayerView() {
         playerController.view.frame = self.bounds
         playerController.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         playerController.showsPlaybackControls = false
         self.insertSubview(playerController.view, at: 0)
     }
     
-    fileprivate func configurateControls() {
+    private func configurateControls() {
         customControlsContentView = UIView(frame: self.bounds)
         customControlsContentView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         customControlsContentView.backgroundColor = .clear
@@ -160,9 +162,10 @@ class AGVideoPlayerView: UIView {
         let pauseAction = UITapGestureRecognizer(target: self, action: #selector(didTapPause))
         customControlsContentView.addGestureRecognizer(pauseAction)
     }
-    
-    //MARK: Timer
-    
+}
+
+//MARK: Timer part
+extension AGVideoPlayerView {
     fileprivate func runTimer() {
         if displayLink != nil {
             displayLink?.isPaused = false
@@ -182,7 +185,7 @@ class AGVideoPlayerView: UIView {
         displayLink = nil
     }
     
-    func timerAction() {
+    @objc private func timerAction() {
         guard videoUrl != nil else {
             return
         }
@@ -192,8 +195,10 @@ class AGVideoPlayerView: UIView {
             pause()
         }
     }
-    
-    //MARK: Logic of the view's position search on the app screen.
+}
+
+//MARK: Logic of the view's position search on the app screen.
+extension AGVideoPlayerView {
     fileprivate func isVisible() -> Bool {
         if self.window == nil {
             return false
@@ -204,8 +209,10 @@ class AGVideoPlayerView: UIView {
         let visibility = (intersection.width * intersection.height) / (frame.width * frame.height)
         return visibility >= minimumVisibilityValueForStartAutoPlay
     }
-    
-    //MARK: Video player logic
+}
+
+//MARK: Video player part
+extension AGVideoPlayerView {
     fileprivate func prepareVideoPlayer() {
         playerController.player?.removeObserver(self, forKeyPath: "rate")
         guard let url = videoUrl else {
@@ -220,12 +227,12 @@ class AGVideoPlayerView: UIView {
         addPlayerObservers()
     }
     
-    func didTapPlay() {
+    @objc fileprivate func didTapPlay() {
         displayLink?.isPaused = false
         play()
     }
     
-    func didTapPause() {
+    @objc fileprivate func didTapPause() {
         displayLink?.isPaused = true
         pause()
     }
@@ -252,20 +259,22 @@ class AGVideoPlayerView: UIView {
         }
     }
     
-    func itemDidFinishPlaying() {
+    @objc fileprivate func itemDidFinishPlaying() {
         if isPlaying {
             playerController.player?.seek(to: kCMTimeZero, toleranceBefore: kCMTimeZero, toleranceAfter: kCMTimeZero)
             playerController.player?.play()
         }
     }
-    
-    //MARK: Player size observing
-    private func addPlayerObservers() {
+}
+
+//MARK: Player size observing part
+extension AGVideoPlayerView {
+    fileprivate func addPlayerObservers() {
         playerController.player?.addObserver(self, forKeyPath: "rate", options: .new, context: nil)
         playerController.contentOverlayView?.addObserver(self, forKeyPath: "bounds", options: .new, context: nil)
     }
     
-    private func removePlayerObservers() {
+    fileprivate func removePlayerObservers() {
         playerController.player?.removeObserver(self, forKeyPath: "rate")
         playerController.contentOverlayView?.removeObserver(self, forKeyPath: "bounds")
     }
@@ -279,30 +288,32 @@ class AGVideoPlayerView: UIView {
             if isFullscreen != fullscreen {
                 isFullscreen = fullscreen
                 NotificationCenter.default.post(name: .playerDidChangeFullscreenMode, object: isFullscreen)
-                print("Is fullscreen \(isFullscreen)")
             }
         default:
             break
         }
     }
+}
+
+//MARK: Device orientation observing
+extension AGVideoPlayerView {
+    @objc fileprivate func deviceOrientationDidChange(_ notification: Notification) {
+        if isFullscreen || !isVisible() { return }
+        if let orientation = (notification.object as? UIDevice)?.orientation, orientation == .landscapeLeft || orientation == .landscapeRight {
+            playerController.forceFullScreenMode()
+            updateDeviceOrientation(with: orientation)
+        }
+    }
     
-    //MARK: Device orientation observing
-    @objc private func deviceOrientationDidChange(_ notification: Notification) {
-        if isFullscreen || !isVisible() {
-            return
-        }
-        if let orientation = (notification.object as? UIDevice)?.orientation {
-            if orientation == .landscapeLeft || orientation == .landscapeRight {
-                playerController.forceFullScreenMode()
-                UIDevice.current.setValue(UIDeviceOrientation.portrait.rawValue, forKey: "orientation")
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3, execute: {
-                    UIDevice.current.setValue(orientation.rawValue, forKey: "orientation")
-                })
-            }
-        }
+    private func updateDeviceOrientation(with orientation: UIDeviceOrientation) {
+        UIDevice.current.setValue(UIDeviceOrientation.portrait.rawValue, forKey: "orientation")
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3, execute: {
+            UIDevice.current.setValue(orientation.rawValue, forKey: "orientation")
+        })
     }
 }
 
+//MARK: AVPlayerViewController extension for force fullscreen mode
 extension AVPlayerViewController {
     func forceFullScreenMode() {
         let selectorName : String = {

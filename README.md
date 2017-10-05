@@ -23,7 +23,7 @@ playerView.shouldAutoRepeat = true //Automatically replay video after playback i
 playerView.showsCustomControls = true //Use AVPlayer's controls or custom. Now custom control view has only "Play" button. Add additional controls if needed.
 playerView.isMuted = true //Mute the video.
 playerView.minimumVisibilityValueForStartAutoPlay = 0.9 //Value from 0.0 to 1.0, which sets the minimum percentage of the video player's view visibility on the screen to start playback.
-
+playerView.shouldSwitchToFullscreen = true //Default value is 'false'. Automatically switch to full-screen mode when device orientation did change to landscape.
 ```
 
 ## License
