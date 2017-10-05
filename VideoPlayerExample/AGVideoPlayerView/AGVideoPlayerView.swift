@@ -52,6 +52,18 @@ class AGVideoPlayerView: UIView {
         }
     }
     
+    //Automatically go to fullscreen when device orientation did change to landscape
+    var shouldAutofullscreen: Bool = false {
+        didSet {
+            if oldValue == shouldAutofullscreen { return }
+            if shouldAutofullscreen {
+                NotificationCenter.default.addObserver(self, selector: #selector(deviceOrientationDidChange(_:)), name: .UIDeviceOrientationDidChange, object: nil)
+            } else {
+                NotificationCenter.default.removeObserver(self, name: .AVPlayerItemDidPlayToEndTime, object: nil)
+            }
+        }
+    }
+    
     //Use AVPlayer's controls or custom. Now custom control view has only "Play" button. Add additional controls if needed.
     var showsCustomControls: Bool = true {
         didSet {
@@ -195,9 +207,9 @@ class AGVideoPlayerView: UIView {
     
     //MARK: Video player logic
     fileprivate func prepareVideoPlayer() {
+        playerController.player?.removeObserver(self, forKeyPath: "rate")
         guard let url = videoUrl else {
             videoAsset = nil
-            playerController.player?.removeObserver(self, forKeyPath: "rate")
             playerController.player = nil
             return
         }
@@ -271,6 +283,38 @@ class AGVideoPlayerView: UIView {
             }
         default:
             break
+        }
+    }
+    
+    //MARK: Device orientation observing
+    @objc private func deviceOrientationDidChange(_ notification: Notification) {
+        if isFullscreen || !isVisible() {
+            return
+        }
+        if let orientation = (notification.object as? UIDevice)?.orientation {
+            if orientation == .landscapeLeft || orientation == .landscapeRight {
+                playerController.forceFullScreenMode()
+                UIDevice.current.setValue(UIDeviceOrientation.portrait.rawValue, forKey: "orientation")
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3, execute: {
+                    UIDevice.current.setValue(orientation.rawValue, forKey: "orientation")
+                })
+            }
+        }
+    }
+}
+
+extension AVPlayerViewController {
+    func forceFullScreenMode() {
+        let selectorName : String = {
+            if #available(iOS 11, *) {
+                return "_transitionToFullScreenAnimated:completionHandler:"
+            } else {
+                return "_transitionToFullScreenViewControllerAnimated:completionHandler:"
+            }
+        }()
+        let selectorToForceFullScreenMode = NSSelectorFromString(selectorName)
+        if self.responds(to: selectorToForceFullScreenMode) {
+            self.perform(selectorToForceFullScreenMode, with: true, with: nil)
         }
     }
 }
